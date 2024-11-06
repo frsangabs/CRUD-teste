@@ -59,20 +59,29 @@ function container(produtos) {
   document.body.appendChild(cont)
 }
 
-// Função para ocultar o produto
+
 function ocultarProduto(id) {
-  const produtoPanel = document.querySelector(`#produto-${id}`)
-  let desejaDel = confirm("Tem certeza que quer deletar esse item?")
-  if(desejaDel === true){
-    produtoPanel.style.display = 'none'
+  let desejaDel = confirm("Tem certeza que quer deletar esse item?");
+  if (desejaDel) {
+    // Envia o pedido de exclusão para a API
+    fetch(`https://fakestoreapi.com/products/${id}`, {
+    method: "DELETE",
+    })
+      .then((res) => res.json())
+      .then((json) => {
+        alert("Produto deletado")
+        // Remove o produto da interface
+        const produtoPanel = document.querySelector(`#produto-${id}`)
+        produtoPanel.style.display = "none"
+        
+      })
   }
 }
 
-// Função para editar o produto
 function editarProduto(id) {
   const produtoPanel = document.querySelector(`#produto-${id}`)
   const nomeAtual = produtoPanel.querySelector('.product-name').innerHTML
-  const precoAtual = produtoPanel.querySelector('.product-price').innerHTML
+  const precoAtual = produtoPanel.querySelector('.product-price').innerHTML.replace('$ ', '')
   const categoriaAtual = produtoPanel.querySelector('.product-category').innerHTML
 
   // Pré seta os nomes
@@ -108,15 +117,37 @@ function editarProduto(id) {
   produtoPanel.appendChild(buttonsDiv)
 
   salvarBtn.onclick = function () {
-    produtoPanel.querySelector('.product-name').innerHTML = nomeInput.value
-    produtoPanel.querySelector('.product-price').innerHTML = '$ ' + precoInput.value
-    produtoPanel.querySelector('.product-category').innerHTML = categoriaInput.value
-    buttonsDiv.remove()
+    const updatedProduct = {
+      title: nomeInput.value,
+      price: parseFloat(precoInput.value),
+      category: categoriaInput.value,
+    }
+
+    // Requisição PATCH para atualizar o produto na API
+    fetch(`https://fakestoreapi.com/products/${id}`, {
+      method: "PATCH",
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(updatedProduct)
+    })
+    .then(res => res.json())
+    .then(updatedData => {
+      alert("Produto atualizado com sucesso!")
+
+      // Atualiza a interface com os novos valores
+      produtoPanel.querySelector('.product-name').innerHTML = updatedData.title
+      produtoPanel.querySelector('.product-price').innerHTML = '$ ' + updatedData.price
+      produtoPanel.querySelector('.product-category').innerHTML = updatedData.category
+
+      // Remove os botões da edição
+      buttonsDiv.remove()
+    })
   }
 
   cancelarBtn.onclick = function () {
     produtoPanel.querySelector('.product-name').innerHTML = nomeAtual
-    produtoPanel.querySelector('.product-price').innerHTML = precoAtual
+    produtoPanel.querySelector('.product-price').innerHTML = '$ ' + precoAtual
     produtoPanel.querySelector('.product-category').innerHTML = categoriaAtual
     buttonsDiv.remove()
   }
@@ -138,32 +169,44 @@ function criarProd(produtos){
       rate: 0, 
       count: 0 
     }
-  };
+  }
 
-  produtos.push(novoProduto);
+  produtos.push(novoProduto)
 
   //sem isso aqui os produtos aparecem duplicados
   document.querySelector('.products-container').remove()
 
   // Exibe a lista atualizada de produtos
-  container(produtos);
+  container(produtos)
 }
 
-// Carrega os produtos ao clicar no botão
 function fakeStore() {
-  document.querySelector('#prod').addEventListener('click', () => {
+  // Seleciona o botão "Mostrar produtos"
+  const mostrarBtn = document.querySelector('#prod')
+
+  // Estilo dos botões
+  const buttonContainer = document.createElement('div')
+  buttonContainer.style.display = 'flex'
+  buttonContainer.style.gap = '10px'
+  document.body.appendChild(buttonContainer)
+
+  // Move o botão "Mostrar produtos" para dentro do contêiner
+  buttonContainer.appendChild(mostrarBtn)
+
+  const criarBtn = document.createElement('button')
+  criarBtn.innerHTML = 'Adicionar produto'
+  criarBtn.id = 'criarElemento'
+  criarBtn.classList.add('btn-produto')
+
+  buttonContainer.appendChild(criarBtn)
+
+  mostrarBtn.addEventListener('click', () => {
     fetch('https://fakestoreapi.com/products')
       .then(resp => resp.json())
       .then(produtos => {
         container(produtos)
 
-        // Cria o botão "Adicionar Produto"
-        let criar = document.createElement('button')
-        criar.innerHTML = 'Adicionar produto'
-        criar.id = 'criarElemento'
-        document.body.appendChild(criar)
-
-        document.querySelector('#criarElemento').addEventListener('click', () => criarProd(produtos));
+        criarBtn.addEventListener('click', () => criarProd(produtos))
       })
   })
 }
