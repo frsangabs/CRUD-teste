@@ -111,6 +111,7 @@ function editarProduto(id) {
 
   const buttonsDiv = document.createElement('div')
   buttonsDiv.classList.add('edit-buttons')
+
   buttonsDiv.appendChild(salvarBtn)
   buttonsDiv.appendChild(cancelarBtn)
 
@@ -123,7 +124,6 @@ function editarProduto(id) {
       category: categoriaInput.value,
     }
 
-    // Requisição PATCH para atualizar o produto na API
     fetch(`https://fakestoreapi.com/products/${id}`, {
       method: "PATCH",
       headers: {
@@ -173,32 +173,27 @@ function criarProd(produtos){
 
   produtos.push(novoProduto)
 
-  //sem isso aqui os produtos aparecem duplicados
+  // Sem isso aqui os produtos aparecem duplicados
   document.querySelector('.products-container').remove()
 
-  // Exibe a lista atualizada de produtos
   container(produtos)
 }
 
 function fakeStore() {
-  // Seleciona o botão "Mostrar produtos"
+  // Cria os botões e seta os eventos
   const mostrarBtn = document.querySelector('#prod')
 
-  // Estilo dos botões
   const buttonContainer = document.createElement('div')
   buttonContainer.style.display = 'flex'
   buttonContainer.style.gap = '10px'
-  document.body.appendChild(buttonContainer)
-
-  // Move o botão "Mostrar produtos" para dentro do contêiner
   buttonContainer.appendChild(mostrarBtn)
 
   const criarBtn = document.createElement('button')
   criarBtn.innerHTML = 'Adicionar produto'
   criarBtn.id = 'criarElemento'
-  criarBtn.classList.add('btn-produto')
-
   buttonContainer.appendChild(criarBtn)
+
+  document.body.appendChild(buttonContainer)
 
   mostrarBtn.addEventListener('click', () => {
     fetch('https://fakestoreapi.com/products')
